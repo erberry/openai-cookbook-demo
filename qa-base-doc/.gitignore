@@ -1,0 +1,4 @@
+.env
+doc/*
+text/*
+processed/*
