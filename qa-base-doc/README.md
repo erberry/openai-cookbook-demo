@@ -75,7 +75,7 @@ python step4-question.py
 >Answer: redo日志是将每条记录的修改内容顺序写入的日志，用于在系统崩溃后重做用户的写操作。
 
 >Question: 怎么使用redo log进行恢复
-
+>
 >Answer: 使用redo log进行恢复的方法是在系统崩溃后，从redo日志中读取记录的修改内容，按照顺序重新执行这些修改操作，以重建buffer pool中的数据。
 
 >Question: minitransaction是什么
