@@ -63,55 +63,73 @@ python step4-question.py
 除了开头查询劳动法，我还使用自己关于Innodb的笔记进行了知识库构建，以下是构建完成后进行的问答：
 
 >Question: innode的原理
+
 >Answer: InnoDB使用redo log进行数据恢复的原理，但是没有提到InnoDB的整体原理。
 >
 >Question: InnoDB使用redo log进行数据恢复的原理是什么
+
 >Answer: InnoDB使用redo log进行数据恢复的原理是将写操作产生的变化以日志的形式记录到redo log文件中，当服务重启时读取redo log，对那些服务崩溃时还没有写入文件的数据进行恢复。
 >
 >Question: redo log是什么
+
 >Answer: redo日志是将每条记录的修改内容顺序写入的日志，用于在系统崩溃后重做用户的写操作。
 >
 >Question: 怎么使用redo log进行恢复
+
 >Answer: 使用redo log进行恢复的方法是在系统崩溃后，从redo日志中读取记录的修改内容，按照顺序重新执行这些修改操作，以重建buffer pool中的数据。
 >
 >Question: minitransaction是什么
+
 >Answer: I don't know.
 >
 >Question: mtr是什么
+
 >Answer: MTR stands for "mini-transaction record".
 >
 >Question: innode一行记录是什么样子
+
 >Answer: innodb行记录包括变长字段长度列表、NULL值列表、纪录头信息和各列的值。变长字段长度列表存储各个变长字段在这条纪录中占用的字节数，逆序存放；NULL值列表记录哪些列的值为NULL；纪录头信息包括删除位标志和记录类型；各列的值包括隐藏列rowid和各个列的实际值。
 >
 >Question: 介绍一下innodb的锁
+
 >Answer: 当不同的事务以不同的顺序获取某些记录的锁时，可能会发生死锁。当死锁发生时，innodb会回滚一个事务以释放该事务拥有的锁（根据哪个事务写操作影响的记录数更少选择）。可以通过设置全局系统变量innodb_print_all_deadlocks为ON，将所有死锁信息记录到mysql的错误日志中。最近一次死锁的详细过程可以通过show engine innodb status命令查看。
 >
 >Question: innodb锁有哪几种
+
 >Answer: I don't know.
 >
 >Question: 介绍一下innodb的锁
+
 >Answer: 当不同的事务以不同的顺序获取某些记录的锁时，可能会发生死锁。当死锁发生时，innodb会回滚一个事务以释放该事务拥有的锁。可以通过设置全局系统变量innodb_print_all_deadlocks为ON，将所有死锁信息记录到mysql的错误日志中。最近一次死锁的详细过程可以通过show engine innodb status命令查看。
 >
 >Question: 行级锁又分为哪些锁
+
 >Answer: I don't know.
 >
 >Question: 间隙锁是什么
+
 >Answer: 间隙锁是一种锁类型，包括S锁和X锁，用于阻止间隙中插入或删除数据，不影响当前记录，可以继续加锁。它的目的是为了保护间隙，防止其他事务在间隙中插入或删除数据。
 >
 >Question: 解释explain返回的type
+
 >Answer: The "type" column in the EXPLAIN output explains the type of access method that will be used to retrieve the data, such as "system", "const", "eq_ref", "ref", or "fulltext".
 >
 >Question: explain返回的type 中system, const, eq_ref, ref, fulltext都代表什么
+
 >Answer: system代表当表中只有一条记录且存储引擎的统计数据是精确的（例如MyISAM、MEMORY），对该表的访问是system。const代表使用主键或者唯一索引与常数进行等值匹配。eq_ref代表连接时对被驱动表使用主键或者不允许null值的唯一索引进行等值匹配。ref代表使用二级索引与常量进行等值匹配。fulltext代表全文索引。
 >
 >Question: 介绍事务
+
 >Answer: 事务是一组数据库操作，具有ACID特性，包括原子性、隔离性、一致性和持久性。事务有不同的执行状态，包括活动的、部分提交的、失败的、中止的和提交的。事务的语法包括begin、start transaction、commit、savepoint、release savepoint、rollback和autocommit。同时，DDL和事务语句等语句会隐式提交上一个事务。
 >
 >Question: 什么是lsn
+
 >Answer: lsn是代表写入了log buffer的总redo日志量的变量。
 >
 >Question: innodb为什么不存储记录数量
+
 >Answer: I don't know.
 >
 >Question: innodb和myisam区别
+
 >Answer: I don't know.
