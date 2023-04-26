@@ -63,11 +63,11 @@ python step4-question.py
 除了开头查询劳动法，我还使用自己关于Innodb的笔记进行了知识库构建，以下是构建完成后进行的问答：
 
 >Question: innode的原理
-
->Answer: InnoDB使用redo log进行数据恢复的原理，但是没有提到InnoDB的整体原理。
 >
->Question: InnoDB使用redo log进行数据恢复的原理是什么
+>Answer: InnoDB使用redo log进行数据恢复的原理，但是没有提到InnoDB的整体原理。
 
+>Question: InnoDB使用redo log进行数据恢复的原理是什么
+>
 >Answer: InnoDB使用redo log进行数据恢复的原理是将写操作产生的变化以日志的形式记录到redo log文件中，当服务重启时读取redo log，对那些服务崩溃时还没有写入文件的数据进行恢复。
 >
 >Question: redo log是什么
