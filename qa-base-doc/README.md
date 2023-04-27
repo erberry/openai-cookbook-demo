@@ -21,13 +21,13 @@
 4. 运行
 ```
 # 从文档中提取纯文本
-python step1-to-text.py
+python step1_to_text.py
 # 将文本转为 csv 格式
-python step2-to-csv.py
+python step2_to_csv.py
 # 对文本进行 embedding，embedding 会消耗你的 token 数
-python step3-token-embedding.py
+python step3_token_embedding.py
 # 开启问答，问答会消耗你的 token 数
-python step4-question.py
+python step4_question.py
 ```
 
 目前支持的文档类型包括：

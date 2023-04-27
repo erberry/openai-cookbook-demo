@@ -1,4 +1,5 @@
 .env
+config.ini
 doc/*
 text/*
 processed/*

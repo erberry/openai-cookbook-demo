@@ -1,26 +1,23 @@
 import os
 import pandas as pd
 import openai
-from dotenv import load_dotenv
 import numpy as np
 from openai.embeddings_utils import distances_from_embeddings, cosine_similarity
+from config import Config
 
 ################################################################################
 ### Step 7
 ################################################################################
 
-load_dotenv()
+def loadEmbedding():
+    df=pd.read_csv('processed/embeddings.csv', index_col=0)
+    df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
+    return df
 
-df=pd.read_csv('processed/embeddings.csv', index_col=0)
-df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
-
-df.head()
 
 ################################################################################
 ### Step 8
 ################################################################################
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def create_context(
     question, df, max_len=1800, size="ada"
@@ -113,11 +110,14 @@ def answer_question(
 ### Step 9
 ################################################################################
 
-
-while True:
-    q = input("请输入你的问题（直接回车退出）：")
-    if q == '':
-        break  # 如果输入为空，则退出循环
-    print(f'Question: {q}')
-    a = answer_question(df, question=q, debug=False)
-    print(f'Answer: {a}')
+if __name__ == '__main__':
+    Config.loadINI('./config.ini')
+    openai.api_key = Config.get("OPENAI_API_KEY")
+    df = loadEmbedding()
+    while True:
+        q = input("请输入你的问题（直接回车退出）：")
+        if q == '':
+            break  # 如果输入为空，则退出循环
+        print(f'Question: {q}')
+        a = answer_question(df, question=q, debug=False)
+        print(f'Answer: {a}')

@@ -118,5 +118,6 @@ def parse_folder(html_folder_path, save_text_folder):
                 parse_file(file_path, save_text_folder, pptx_parser)       
                 
 # 读取doc目录下的文件，提取其中的文本，写入text文件夹下
-parse_folder('doc', 'text')
-print('---------------------------text生成完毕，写入text文件夹')
+if __name__ == '__main__':
+    parse_folder('doc', 'text')
+    print('---------------------------text生成完毕，写入text文件夹')
