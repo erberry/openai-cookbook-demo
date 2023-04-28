@@ -15,6 +15,10 @@ def remove_newlines(serie):
 
 
 def toCsv():
+    if not os.path.isdir('processed'):
+        # 创建目录
+        os.makedirs('processed')
+
     # 创建一个列表来存储文本文件
     texts=[]
 

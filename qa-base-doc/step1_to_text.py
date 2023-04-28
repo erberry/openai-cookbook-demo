@@ -95,6 +95,10 @@ def pptx_parser(file_path):
 
 
 def parse_folder(html_folder_path, save_text_folder):
+    if not os.path.isdir(save_text_folder):
+        # 创建目录
+        os.makedirs(save_text_folder)
+
     # 遍历html文件夹下的所有.html文件
     for root, _, files in os.walk(html_folder_path):
         for file in files:
