@@ -103,15 +103,16 @@ def progress_bar(percent, width=50):
     print('[' + '#' * left + ' ' * right + ']' + str(percent) + '%', end='\r')
 
 
-def create_embedding(row, param):
+def create_embedding(row, datalen, fromConsole):
     index, text = row.name, row['text']
     embedding = openai.Embedding.create(input=text, engine='text-embedding-ada-002')['data'][0]['embedding']
-    progress_bar(int(index/param*100))
-    time.sleep(1)  # 每个请求之间间隔1秒，避免超过openai接口频率上限（每分钟60次）
+    if fromConsole:
+        progress_bar(int(index/datalen*100))
+        time.sleep(1)  # 每个请求之间间隔1秒，避免超过openai接口频率上限（每分钟60次）
     return embedding
 
 def embedding(df):
-    df['embeddings'] = df.apply(create_embedding, axis=1, param=len(df))
+    df['embeddings'] = df.apply(create_embedding, axis=1, datalen=len(df), fromConsole=True)
     df.to_csv('processed/embeddings.csv')
     print(f'---------------------------Embedding完毕, 写入processed/embeddings.csv文件')
 

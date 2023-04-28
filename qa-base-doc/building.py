@@ -10,6 +10,7 @@ import pandas as pd
 import openai
 from config import Config
 import shutil
+import time
 
 
 class BuildWidget(QGroupBox):
@@ -247,14 +248,16 @@ class ToEmbeddingThread(QThread):
 
     def run(self):
         openai.api_key = Config.get("openai_api_key")
+        sleep_seconds = Config.get("Embedding_SLEEP_SECOND")
         embs = []
         msg = 'ok'
         try:
             for index, row in self.df.iterrows():
                 if self.stop:
                     break
-                emb = create_embedding(row, param=len(self.df))
+                emb = create_embedding(row, datalen=len(self.df), fromConsole=False)
                 embs.append(emb)
+                time.sleep(float(sleep_seconds))
                 # 更新进度条
                 self.progressUpdated.emit(index)
 

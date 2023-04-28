@@ -50,6 +50,15 @@ class SettingArea(QGroupBox):
         model_main_layout.addWidget(self.combo_box, 8)
         self.combo_box.setCurrentText(Config.get("MODEL"))
 
+        sleep_main_layout = QHBoxLayout()
+        sleep_label = QLabel("ⓘ计算词向量间隔:")
+        sleep_label.setToolTip('由于OpenAI的Embedding接口有调用速率限制，这里需要设置接口调用的间隔，默认1秒没有问题。\n 请查看速率限制指南以了解如何处理此问题: https://platform.openai.com/docs/guides/rate-limits')
+        self.sleep_input = QLineEdit("1")
+        self.sleep_input.resize(50, 10)
+        sleep_main_layout.addWidget(sleep_label, 2)
+        sleep_main_layout.addWidget(self.sleep_input, 8)
+        self.sleep_input.setText(Config.get("Embedding_SLEEP_SECOND"))
+
         save_button = QPushButton("应用设置")
         save_button.clicked.connect(self.save)
 
@@ -58,6 +67,7 @@ class SettingArea(QGroupBox):
         settings_container_layout.addLayout(max_token_main_layout, 1)
         settings_container_layout.addLayout(context_max_token_main_layout, 1)
         settings_container_layout.addLayout(model_main_layout, 1)
+        settings_container_layout.addLayout(sleep_main_layout, 1)
         settings_container_layout.addWidget(save_button, 1)
         settings_container_layout.addStretch()
         
@@ -70,11 +80,14 @@ class SettingArea(QGroupBox):
             Config.set("CONTEXT_MAX_TOKEN", 1000)
         if Config.get("MODEL") == '':
             Config.set("MODEL", 'gpt-3.5-turbo')
+        if Config.get("Embedding_SLEEP_SECOND") == '':
+            Config.set("Embedding_SLEEP_SECOND", 1)
 
     def save(self):
         Config.set("OPENAI_API_KEY", self.api_key_input.text())
         Config.set("MAX_TOKEN", self.max_token_input.text())
         Config.set("CONTEXT_MAX_TOKEN", self.context_max_token_input.text())
         Config.set("MODEL", self.combo_box.currentText())
+        Config.set("Embedding_SLEEP_SECOND", self.sleep_input.text())
         Config.save()
         pass
