@@ -1,6 +1,12 @@
-## 构建本地知识库
+## 使用 ChatGPT 构建本地知识库
 
->基于 [openai cookbook](https://platform.openai.com/docs/tutorials/web-qa-embeddings) 的二次开发。
+
+### 更新
+
+#### 2022.4.28
+- 使用pyqt5，搭建可视化界面，如下图
+
+![界面](./interface.png)
 
 ### 目的
 
@@ -16,9 +22,10 @@
 ### 用法
 
 1. 将文档拷贝到 doc 目录下。
-2. 将 .env-example重命名为 .env，修改 .env 中的 OPENAI_API_KEY 为你的 key。
+2. 将 config-example.ini 重命名为 config.ini ，修改 config.ini 中的 OPENAI_API_KEY 为你的 key。
 3. 安装 python 包：`pip install -r requirements.txt` (建议使用 conda 管理 python 环境)
-4. 运行
+4. 可视化运行 `python app.py`
+5. 脚本运行
 ```
 # 从文档中提取纯文本
 python step1_to_text.py
@@ -30,6 +37,8 @@ python step3_token_embedding.py
 python step4_question.py
 ```
 
+
+
 目前支持的文档类型包括：
 
 - html 文件：.html 后缀
@@ -40,7 +49,7 @@ python step4_question.py
 
 ### 原理
 
-1. 首先从 doc 目录下的各种文档中提取纯文本信息，并写入 text 目录。
+1. 从 doc 目录下的各种文档中提取纯文本信息，并写入 text 目录。
 2. 将纯文本写入 csv 文件，写入 processed 目录，为 embedding 做准备。
 3. embedding 包括4个子步骤。
     1. 使用 “cl100k_base” 分词器对 csv 文件中的每一行文本进行分词。
