@@ -1,8 +1,4 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from step4_question import answer_question
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtWidgets import QDialog, QHBoxLayout
 from local_html import LocalHtmlViewer
 import os
 

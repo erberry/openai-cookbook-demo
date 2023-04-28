@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QLabel, QPushButton, QHBoxLayout, QVBoxLayout, QGroupBox, QLineEdit, QComboBox
 from config import Config
 
 class SettingArea(QGroupBox):

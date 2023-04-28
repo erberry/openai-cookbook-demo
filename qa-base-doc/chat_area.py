@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListWidgetItem, QMenu, QApplication, QVBoxLayout, QWidget, QLineEdit, QPushButton, QHBoxLayout, QMessageBox
+from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtCore import Qt, pyqtSignal, QThread
 from step4_question import answer_question
 import datetime
 from config import Config
@@ -12,6 +12,7 @@ class ChatList(QListWidget):
         self.setWordWrap(True)
         self.setSelectionMode(QAbstractItemView.MultiSelection)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        #self.setStyleSheet("background-color: rgba(255, 255, 255, 0.5);")
 
 
     def add_message(self, sender, content, sent_time):
@@ -19,7 +20,7 @@ class ChatList(QListWidget):
         item1.setFont(QFont("Arial",10))
         item1.setForeground(QColor(0x666666))
         item2 = QListWidgetItem(content)
-        item2.setBackground(QBrush(QColor(0xf2f2f2)))
+        #item2.setBackground(QBrush(QColor(0xf2f2f2)))
         
         self.addItem(item1)
         self.allowCopy(item1)

@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
-from PyQt5.QtWidgets import QWidget, QLabel, QProgressBar, QPushButton, QHBoxLayout, QVBoxLayout, QTextEdit, QGroupBox, QMessageBox
+from PyQt5.QtWidgets import QLabel, QProgressBar, QPushButton, QHBoxLayout, QVBoxLayout, QTextEdit, QGroupBox, QMessageBox
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
 from step4_question import loadEmbedding
 from step3_token_embedding import create_embedding, token
