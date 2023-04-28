@@ -10,17 +10,47 @@ class ChatList(QListWidget):
     def __init__(self):
         super().__init__()
         self.setWordWrap(True)
+        self.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
 
     def add_message(self, sender, content, sent_time):
         item1 = QListWidgetItem(f"{sender} {sent_time}")
+        item1.setFont(QFont("Arial",10))
+        item1.setForeground(QColor(0x666666))
         item2 = QListWidgetItem(content)
+        item2.setBackground(QBrush(QColor(0xf2f2f2)))
         
         self.addItem(item1)
+        self.allowCopy(item1)
         self.addItem(item2)
+        self.allowCopy(item2)
 
         # 让窗口自动滚动到最新的消息处
         scrollbar = self.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
+
+    def allowCopy(self, item):
+        # 允许复制
+        item.setFlags(item.flags() | Qt.ItemIsSelectable | Qt.ItemIsEnabled )
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.RightButton:
+            # 自己定义右键弹出菜单的内容和行为
+            menu = QMenu(self)
+            copy_action = menu.addAction("复制")
+            copy_all_action = menu.addAction("复制全部")
+            action = menu.exec_(self.mapToGlobal(event.pos()))
+            if action == copy_action:
+                clipboard = QApplication.clipboard()
+                all_text = [item.text() for item in (self.selectedItems())]
+                clipboard.setText('\n'.join(all_text))
+            elif action == copy_all_action:
+                clipboard = QApplication.clipboard()
+                all_text = [self.item(i).text() for i in range(self.count())]
+                clipboard.setText('\n'.join(all_text))
+        else:
+            super(ChatList, self).mousePressEvent(event)
 
 class ChatArea(QWidget):
     def __init__(self, parent=None):
@@ -29,7 +59,8 @@ class ChatArea(QWidget):
         chat_container_layout = QVBoxLayout()
 
         self.chat_list = ChatList()
-        self.question_input = QLineEdit("这里输入问题...")
+        self.question_input = QLineEdit()
+        self.question_input.setPlaceholderText("这里输入问题...")
         self.send_button = QPushButton("发送")
         self.clear_button = QPushButton("清空")
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
@@ -64,7 +95,6 @@ class ChatArea(QWidget):
     def question(self, question, embedding):
         self.task = AnswerThread(question, embedding)
         self.task.finished.connect(self.answer)
-        print('start')
         self.task.start()
 
     def answer(self, answer):
@@ -88,7 +118,14 @@ class AnswerThread(QThread):
     def run(self):
         try:
             openai.api_key = Config.get('openai_api_key')
-            a = answer_question(self.embedding, question=self.question, debug=False)
+            a = answer_question(
+                self.embedding, 
+                model = Config.get("MODEL"),
+                max_len = int(Config.get("CONTEXT_MAX_TOKEN")),
+                max_tokens = int(Config.get("MAX_TOKEN")),
+                question=self.question, 
+                debug=False
+            )
         except Exception as e:
             print("发生了未知异常，错误信息为:", e)
             self.finished.emit(f"发生了未知异常，错误信息为: {e}")

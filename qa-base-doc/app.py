@@ -12,8 +12,8 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
         # Set main window properties
-        self.setWindowTitle('My Chatbot')
-        self.setGeometry(50, 50, 1400, 800)
+        self.setWindowTitle('本地知识库')
+        self.setGeometry(20, 20, 1400, 800)
 
         chat_area = ChatArea(self)
 

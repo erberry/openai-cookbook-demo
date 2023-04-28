@@ -64,6 +64,7 @@ def answer_question(
     """
     基于数据文本中最相似的上下文回答问题
     """
+
     context = create_context(
         question,
         df,
@@ -81,7 +82,7 @@ def answer_question(
             completion = openai.ChatCompletion.create(
                 model=model,
                 messages=[
-                    {"role": "user", "content": f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:"}
+                    {"role": "user", "content": f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nPlease speak the language in the Context\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:"}
                 ],
                 temperature=0,
                 top_p=0.1,
@@ -92,7 +93,7 @@ def answer_question(
             return completion.choices[0].message.content
 
         response = openai.Completion.create(
-            prompt=f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:",
+            prompt=f"Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nPlease speak the language in the Context\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:",
             temperature=0,
             max_tokens=max_tokens,
             top_p=1,
