@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
-from PyQt5.QtWidgets import QWidget, QLabel, QProgressBar, QPushButton, QHBoxLayout, QVBoxLayout, QTextEdit, QGroupBox
+from PyQt5.QtWidgets import QWidget, QLabel, QProgressBar, QPushButton, QHBoxLayout, QVBoxLayout, QTextEdit, QGroupBox, QMessageBox
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
 from step4_question import loadEmbedding
 from step3_token_embedding import create_embedding, token
@@ -9,6 +9,7 @@ from step1_to_text import parse_folder
 import pandas as pd
 import openai
 from config import Config
+import shutil
 
 
 class BuildWidget(QGroupBox):
@@ -18,7 +19,6 @@ class BuildWidget(QGroupBox):
         super().__init__(parent)
         self.initUI()
         self.df = None
-        self.embedding = None
         
     def initUI(self):
         self.setTitle("构建")
@@ -52,6 +52,11 @@ class BuildWidget(QGroupBox):
         self.toEmbeddingBtn.setObjectName("to_embedding")
         self.toEmbeddingBtn.clicked.connect(lambda: self.changeButtonText(self.toEmbeddingBtn))
         btn_layout.addWidget(self.toEmbeddingBtn)
+
+        self.clearAllBtn = QPushButton("一键清空", self)
+        self.clearAllBtn.setObjectName("clear_all_data")
+        self.clearAllBtn.clicked.connect(self.clearAllData)
+        btn_layout.addWidget(self.clearAllBtn)
 
         layout.addLayout(btn_layout)
         
@@ -90,9 +95,13 @@ class BuildWidget(QGroupBox):
         self.textTask.finished.connect(self.endText)
         self.textTask.start()
 
-    def endText(self):
-        self.textedit.setTextColor(QColor("green"))
-        self.textedit.setText('text生成完毕，写入text文件夹')
+    def endText(self, msg):
+        if msg != 'ok':
+            self.textedit.setTextColor(QColor("red"))
+            self.textedit.setText(f'text生成失败：{msg}')
+        else:
+            self.textedit.setTextColor(QColor("green"))
+            self.textedit.setText('text生成完毕，写入text文件夹')
         self.toTokenBtn.setEnabled(True)
 
     def doCsv(self):
@@ -101,9 +110,13 @@ class BuildWidget(QGroupBox):
         self.csvTask.finished.connect(self.endCsv)
         self.csvTask.start()
 
-    def endCsv(self):
-        self.textedit.setTextColor(QColor("green"))
-        self.textedit.setText('csv生成完毕，写入processed/scraped.csv文件')
+    def endCsv(self, msg):
+        if msg != 'ok':
+            self.textedit.setTextColor(QColor("red"))
+            self.textedit.setText(f'csv生成失败：{msg}')
+        else:
+            self.textedit.setTextColor(QColor("green"))
+            self.textedit.setText('csv生成完毕，写入processed/scraped.csv文件')
         self.toCsvBtn.setEnabled(True)
 
     def doToken(self):
@@ -112,10 +125,14 @@ class BuildWidget(QGroupBox):
         self.tokenTask.finished.connect(self.endToken)
         self.tokenTask.start()
 
-    def endToken(self, df):
-        self.textedit.setTextColor(QColor("green"))
-        self.textedit.setText(f"分词拆分完毕, 记录条数: {len(df)}")
-        self.df = df
+    def endToken(self, msg, df):
+        if msg != 'ok':
+            self.textedit.setTextColor(QColor("red"))
+            self.textedit.setText(f'分词拆分失败：{msg}')           
+        else:
+            self.textedit.setTextColor(QColor("green"))
+            self.textedit.setText(f"分词拆分完毕, 记录条数: {len(df)}")
+            self.df = df
         self.toTokenBtn.setEnabled(True)
 
     def doEmbedding(self):
@@ -123,7 +140,6 @@ class BuildWidget(QGroupBox):
             self.textedit.setTextColor(QColor("red"))
             self.textedit.setText("没有分词数据，请先进行分词")
             return False
-        self.embedding = None
         self.embeddingTask = ToEmbeddingThread(self.df)
         self.stopEmbeddingSignal.connect(self.embeddingTask.onStop)
         self.embeddingTask.progressUpdated.connect(self.progressbarUpdate)
@@ -134,48 +150,90 @@ class BuildWidget(QGroupBox):
         self.embeddingTask.start()
         return True
 
-    def endEmbedding(self):
-        self.df = None
-        self.textedit.setTextColor(QColor("green"))
-        self.textedit.setText("Embedding完毕, 写入processed/embeddings.csv文件")
-        self.embedding = loadEmbedding()
+    def endEmbedding(self, msg):
+        if msg != 'ok':
+            self.textedit.setTextColor(QColor("red"))
+            self.textedit.setText(f'Embedding失败：{msg}')  
+        else:
+            self.textedit.setTextColor(QColor("green"))
+            self.textedit.setText("Embedding完毕, 写入processed/embeddings.csv文件")
+            Config.embedding = loadEmbedding()
 
     def progressbarUpdate(self, index):
         self.progressbar.setValue(index)
 
+    def clearAllData(self):
+        msg_box = QMessageBox()
+        msg_box.setText("确认将清空 text 和 processed 目录下的所有内容！！！")
+        msg_box.setWindowTitle("清空所有数据")
+        msg_box.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        ret = msg_box.exec_()
+        if ret == QMessageBox.Ok:
+            self.clearAllBtn.setEnabled(False)
+            self.df = None
+            Config.clearEmbedding()
+            self.clearTask = ClearThread()
+            self.clearTask.finished.connect(self.endClear)
+            self.clearTask.start()
+
+    def endClear(self, msg):
+        if msg != 'ok':
+            self.textedit.setTextColor(QColor("red"))
+            self.textedit.setText(f'清空失败：{msg}')  
+        else:
+            self.textedit.setTextColor(QColor("green"))
+            self.textedit.setText("清空完毕")
+        self.clearAllBtn.setEnabled(True)
+
 class ToTextThread(QThread):
-    finished = pyqtSignal()
+    finished = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
     def run(self):
-        parse_folder('doc', 'text')
-        self.finished.emit()
+        msg = 'ok'
+        try:
+            parse_folder('doc', 'text')
+        except Exception as e:
+            print("发生了未知异常，错误信息为:", e)
+            msg = f"发生了未知异常，错误信息为:{e}"
+        self.finished.emit(msg)
 
 class ToCsvThread(QThread):
-    finished = pyqtSignal()
+    finished = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
     def run(self):
-        toCsv()
-        self.finished.emit()
+        msg = 'ok'
+        try:
+            toCsv()
+        except Exception as e:
+            print("发生了未知异常，错误信息为:", e)
+            msg = f"发生了未知异常，错误信息为:{e}"
+        self.finished.emit(msg)
 
 class ToTokenThread(QThread):
-    finished = pyqtSignal(pd.DataFrame)
+    finished = pyqtSignal(str, pd.DataFrame)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
     def run(self):
-        df = token()
-        self.finished.emit(df)
+        msg = 'ok'
+        try:
+            df = token()
+        except Exception as e:
+            print("发生了未知异常，错误信息为:", e)
+            msg = f"发生了未知异常，错误信息为:{e}"
+            df = pd.DataFrame()
+        self.finished.emit(msg, df)
 
 class ToEmbeddingThread(QThread):
     progressUpdated = pyqtSignal(int)
-    finished = pyqtSignal()
+    finished = pyqtSignal(str)
 
     def __init__(self, df, parent=None):
         super().__init__(parent)
@@ -188,18 +246,39 @@ class ToEmbeddingThread(QThread):
         pass
 
     def run(self):
-        openai.api_key = Config.get("OPENAI_API_KEY")
+        openai.api_key = Config.get("openai_api_key")
         embs = []
-        for index, row in self.df.iterrows():
-            if self.stop:
-                break
-            emb = create_embedding(row, param=len(self.df))
-            embs.append(emb)
-            # 更新进度条
-            self.progressUpdated.emit(index)
+        msg = 'ok'
+        try:
+            for index, row in self.df.iterrows():
+                if self.stop:
+                    break
+                emb = create_embedding(row, param=len(self.df))
+                embs.append(emb)
+                # 更新进度条
+                self.progressUpdated.emit(index)
 
-        valid = self.df.head(len(embs))
-        valid['embeddings'] = embs
-        valid.to_csv('processed/embeddings.csv')
-        self.finished.emit()
+            valid = self.df.head(len(embs))
+            valid['embeddings'] = embs
+            valid.to_csv('processed/embeddings.csv')
+        except Exception as e:
+            print("发生了未知异常，错误信息为:", e)
+            msg = f"发生了未知异常，错误信息为:{e}"
+        self.finished.emit(msg)
         print(f'---------------------------Embedding完毕{len(embs)}条, 写入processed/embeddings.csv文件')
+
+class ClearThread(QThread):
+    finished = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def run(self):
+        msg = 'ok'
+        try:
+            shutil.rmtree('./text')
+            shutil.rmtree('./processed')
+        except Exception as e:
+            print("发生了未知异常，错误信息为:", e)
+            msg = f"发生了未知异常，错误信息为:{e}"
+        self.finished.emit(msg)

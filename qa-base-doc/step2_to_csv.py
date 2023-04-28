@@ -28,6 +28,8 @@ def toCsv():
             # 用空格替换-、_和#update。
             texts.append((file.replace('-',' ').replace('_', ' ').replace('#update',''), text))
 
+    if len(texts) == 0:
+        raise(Exception('没有可用的文本文件，请检查text目录'))
     # 从文本列表创建一个DataFrame
     df = pd.DataFrame(texts, columns = ['fname', 'text'])
     df['text'] = df.fname + ". " + remove_newlines(df.text)

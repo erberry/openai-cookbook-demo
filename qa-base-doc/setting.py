@@ -8,7 +8,7 @@ class SettingArea(QGroupBox):
         super().__init__()
         Config.loadINI("./config.ini")
         self.setDefaultConfig()
-        
+
         self.setTitle("设置")
         self.setFont(QFont("Arial",20))
         self.setStyleSheet("QGroupBox::title{ subcontrol-position: top center; font-size: 22pt; font-weight: bold; color: green; }")
@@ -30,7 +30,7 @@ class SettingArea(QGroupBox):
         self.max_token_input.setText(Config.get("MAX_TOKEN"))
 
         save_button = QPushButton("保存设置")
-        save_button.clicked.connect(lambda: self.save(save_button))
+        save_button.clicked.connect(self.save)
 
         settings_container_layout = QVBoxLayout()
         settings_container_layout.addLayout(apik_main_layout, 1)

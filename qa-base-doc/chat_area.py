@@ -1,6 +1,10 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+from step4_question import answer_question
+import datetime
+from config import Config
+import openai
 
 class ChatList(QListWidget):
     def __init__(self):
@@ -39,7 +43,7 @@ class ChatArea(QWidget):
         self.setLayout(chat_container_layout)
 
     def on_send_button_clicked(self):
-        if self.main.building_groupBox.embedding is None:
+        if Config.getEmbedding() is None:
             msg_box = QMessageBox()
             msg_box.setText("没有生成词向量，请按照右侧构建步骤进行")
             msg_box.setWindowTitle("提示信息")
@@ -50,23 +54,44 @@ class ChatArea(QWidget):
         self.send_button.setEnabled(False)
         text = self.question_input.text()
         self.question_input.clear()
-        self.chat_list.add_message("我", text, "111")
-        self.answer(text)
+        self.addMessage(text, "我：")
+        self.question(text, Config.getEmbedding())
 
 
     def on_clear_button_clicked(self):
         self.chat_list.clear()
 
-    def answer(self, question):
-        task = AnswerThread()
+    def question(self, question, embedding):
+        self.task = AnswerThread(question, embedding)
+        self.task.finished.connect(self.answer)
+        print('start')
+        self.task.start()
 
-        
+    def answer(self, answer):
+        self.addMessage(answer, "AI：")
+        self.send_button.setEnabled(True)
+
+    def addMessage(self, text, role):
+        now = datetime.datetime.now()
+        current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+        self.chat_list.add_message(role, text, current_time)
+
 
 class AnswerThread(QThread):
-    finished = pyqtSignal()
+    finished = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, question, embedding, parent=None):
         super().__init__(parent)
+        self.question = question
+        self.embedding = embedding
 
     def run(self):
-        self.finished.emit()
+        try:
+            openai.api_key = Config.get('openai_api_key')
+            a = answer_question(self.embedding, question=self.question, debug=False)
+        except Exception as e:
+            print("发生了未知异常，错误信息为:", e)
+            self.finished.emit(f"发生了未知异常，错误信息为: {e}")
+            return
+        self.finished.emit(a)
+        
