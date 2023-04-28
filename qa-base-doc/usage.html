@@ -9,8 +9,7 @@
 </head>
 
 <body class="stackedit">
-  <div class="stackedit__html">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-<h3 id="用法">用法</h3>
+  <div class="stackedit__html"><h3 id="用法">用法</h3>
 <ol>
 <li>
 <p>将文档拷贝到 doc 目录下。</p>
@@ -23,6 +22,15 @@
 </li>
 <li>
 <p>运行 <code>python app.py</code></p>
+</li>
+<li>
+<p>首先要设置好自己的 openai 的 API KEY，并应用设置。</p>
+</li>
+<li>
+<p>在【构建】模块中，依次执行【提取文本】、【转CSV】、【分词】、【词向量】，每一步都是增量计算，即如果【分词】这一步出错了，下一次仍然可以从【分词】开始，不需要从头再来。</p>
+</li>
+<li>
+<p>【构建】全部完成，即可在左侧进行提问。可以选择聊天区域中的内容右键复制。</p>
 </li>
 </ol>
 <p>目前支持的文档类型包括：</p>
@@ -43,7 +51,6 @@
 <p>ppt 文档：.pptx 后缀</p>
 </li>
 </ul>
-<p><a href="https://github.com/erberry/openai-cookbook-demo/tree/main/qa-base-doc">就很好</a></p>
 </div>
 </body>
 
