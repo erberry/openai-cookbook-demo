@@ -4,7 +4,7 @@ from PyQt5.QtCore import QSize
 from chat_area import ChatArea
 from setting import SettingArea
 from building import BuildWidget
-from usage import Usage
+from usage import PopupUsage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -25,20 +25,15 @@ class MainWindow(QMainWindow):
         right_layout.addWidget(self.building_groupBox)
 
         layout = QVBoxLayout()
-        #usage = Usage(self)
-
-        # 创建一个链接标签
-        self.lbl_link = QLabel(self)
-        self.lbl_link.setText('<a href="https://github.com/erberry/openai-cookbook-demo/tree/main/qa-base-doc">项目地址&使用说明</a>')
-        self.lbl_link.setOpenExternalLinks(True)  # 设置打开方式为在外部浏览器中打开
+        usage = QPushButton("使用说明")
+        usage.clicked.connect(self.on_usage_click)
 
         # Add containers to main layout
         main_layout = QHBoxLayout()
         main_layout.addWidget(chat_area, 7)
         main_layout.addLayout(right_layout, 3)
 
-        layout.addWidget(self.lbl_link)
-        #layout.addWidget(usage)
+        layout.addWidget(usage)
         layout.addLayout(main_layout)
         
         # Set main layout and show window
@@ -46,6 +41,10 @@ class MainWindow(QMainWindow):
         main_widget.setLayout(layout)
         self.setCentralWidget(main_widget)
         self.show()
+
+    def on_usage_click(self):
+        pop = PopupUsage()
+        pop.exec_()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
