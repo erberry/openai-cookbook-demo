@@ -64,12 +64,20 @@ python step4_question.py
     1. 加载 processed/embeddings.csv 。
     2. 将问题进行 embedding ，并计算问题和 processed/embeddings.csv 中每一行文本的相似度，按相似度从高到低排序，取最高的N个文本。
     3. 将相似文本作为上下文和问题一起发送给模型。模型将会根据提供的上下文回答问题。
+    4. Prompt：Answer the question based on the context below, and if the question can't be answered based on the context, say \"I don't know\"\n\nContext: {context}\n\n---\n\nQuestion: {question}\nAnswer:
 5. 界面使用 pyqt5 搭建。
 
 ### TODO
 
 1. 查找与问题最相似的段落时，不够准确，导致 GPT 回答不知道。应该还有比 openai 的 “cl100k_base和ada-002”组合更优的方法。
 2. GPT 接口消耗 token，费钱！应该可以使用其他开源模型替代，比如尝试 ChatGLM。
+3. 支持自定义 Prompt，支持设置其他参数，如：temperature、top_p 等。
+
+### 关于应用的扩展思考
+
+目前的【知识库】例子是通过 Prompt 让 ChatGPT 据实回答。
+其实也可以修改 Prompt 和其他参数，让 ChatGPT 的回答更有创造性。
+例如将一整本小说作为知识库，让 ChatGPT 根据与要求相似的内容进行再创作。
 
 
 ### 例子
