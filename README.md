@@ -1,6 +1,6 @@
-## openai cook book 实践
+## ChatGPT 进阶系列
 
-学习 openai cook book，并根据示例进行二次开发
+ChatGPT 进阶系列的目标是以 GPT 为基础，进一步拓展其能力并进行开发，灵感主要来源于 [openai cookbook](https://github.com/openai/openai-cookbook)。我们的目标是通过实践来逐步学习和了解机器学习相关知识和机器学习工程化相关知识。欢迎关注我们的公众号，获取有关 ChatGPT 的最新分享。
 
 目前已有的项目：
 

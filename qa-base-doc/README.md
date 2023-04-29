@@ -60,10 +60,11 @@ python step4_question.py
     2. 对文本超长的行，分割为多行 （这一步是为了避免调用 ChatCompletion 接口时，发送的 context 超长）。
     3. 调用 openai 的 Embedding 接口进行 Embedding。
     4. 将结果写入 processed/embeddings.csv 。
-4. 问答包括3个子步骤
+4. 问答包括3个子步骤。
     1. 加载 processed/embeddings.csv 。
     2. 将问题进行 embedding ，并计算问题和 processed/embeddings.csv 中每一行文本的相似度，按相似度从高到低排序，取最高的N个文本。
     3. 将相似文本作为上下文和问题一起发送给模型。模型将会根据提供的上下文回答问题。
+5. 界面使用 pyqt5 搭建。
 
 ### TODO
 
