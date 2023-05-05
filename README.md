@@ -4,7 +4,7 @@ ChatGPT 进阶系列的目标是以 GPT 为基础，进一步拓展其能力并�
 
 ### 目前已有的项目：
 
-1. [qa-base-doc](https://github.com/erberry/openai-cookbook-demo/tree/main/qa-base-doc)：使用 GPT 构建本地知识库
+1. [qa-base-doc](https://github.com/erberry/openai-cookbook-demo/tree/main/qa-base-doc)：针对GPT不熟悉的话题，构建本地知识库，例如：GPT没有关于最新的时间的知识；或者未公开文档的知识。
 
 
 
