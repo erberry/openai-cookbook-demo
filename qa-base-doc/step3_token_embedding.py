@@ -4,6 +4,9 @@ import tiktoken
 import openai
 import sys
 from config import Config
+from gensim.models import KeyedVectors
+import jieba
+import numpy as np
 
 def token():
     ################################################################################
@@ -103,23 +106,60 @@ def progress_bar(percent, width=50):
     print('[' + '#' * left + ' ' * right + ']' + str(percent) + '%', end='\r')
 
 
-def create_embedding(row, datalen, fromConsole):
-    index, text = row.name, row['text']
+def openai_embedding(text, fromConsole):
     embedding = openai.Embedding.create(input=text, engine='text-embedding-ada-002')['data'][0]['embedding']
     if fromConsole:
-        progress_bar(int(index/datalen*100))
         time.sleep(1)  # 每个请求之间间隔1秒，避免超过openai接口频率上限（每分钟60次）
     return embedding
 
-def embedding(df):
-    df['embeddings'] = df.apply(create_embedding, axis=1, datalen=len(df), fromConsole=True)
+def create_embedding(row, datalen, fromConsole, model):
+    index, text = row.name, row['text']
+    if model == 'text-embedding-ada-002':
+        ret = openai_embedding(text, fromConsole)
+    elif model == 'Tencent_AILab_ChineseEmbedding':
+        ret = common_embedding(text, model)
+    if fromConsole:
+        progress_bar(int(index/datalen*100))
+    return ret
+
+embeddingModelLoaded = {'tencent-ailab-embedding-zh': None}
+
+def common_embedding(text, model):
+    if embeddingModelLoaded[model] is None:
+        embeddingModelLoaded[model] = load_embedding_model(model)
+
+    wv_model = embeddingModelLoaded[model]
+    return get_sentence_vector(wv_model, text)
+
+model_path = './model/'
+
+def load_embedding_model(model):
+    wv_model = KeyedVectors.load_word2vec_format(model_path+model, binary=False)
+    return wv_model
+
+# 分词并获取文本的词向量表示
+def get_sentence_vector(wv_model, sentence):
+    words = jieba.lcut(sentence)
+    vectors = []
+    for word in words:
+        if word in wv_model:
+            vectors.append(wv_model[word])
+    if len(vectors) == 0:
+        return None
+    else:
+        return np.mean(vectors, axis=0)
+
+def embedding(df, model):
+    df['embeddings'] = df.apply(create_embedding, axis=1, datalen=len(df), fromConsole=True, model=model)
     df.to_csv('processed/embeddings.csv')
     print(f'---------------------------Embedding完毕, 写入processed/embeddings.csv文件')
 
 if __name__ == '__main__':
     Config.loadINI('./config.ini')
-    openai.api_key = Config.get("OPENAI_API_KEY")
+    model = Config.get("Embedding_Model")
+    if model == 'text-embedding-ada-002':
+        openai.api_key = Config.get("OPENAI_API_KEY")
     df = token()
     if input("下一步进行Embedding.是否继续？(y/n)") != 'y':
         sys.exit()
-    embedding(df)
+    embedding(df, model)
