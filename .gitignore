@@ -3,6 +3,7 @@ config.ini
 doc/
 text/
 processed/
+model/
 .DS_Store
 __pycache__/
 *.pyc

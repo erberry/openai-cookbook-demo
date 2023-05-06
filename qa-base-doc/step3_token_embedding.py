@@ -3,7 +3,11 @@ import pandas as pd
 import tiktoken
 import openai
 import sys
+import os
 from config import Config
+from gensim.models import KeyedVectors
+import jieba
+import numpy as np
 
 def token():
     ################################################################################
@@ -103,23 +107,83 @@ def progress_bar(percent, width=50):
     print('[' + '#' * left + ' ' * right + ']' + str(percent) + '%', end='\r')
 
 
-def create_embedding(row, datalen, fromConsole):
-    index, text = row.name, row['text']
+def openai_embedding(text, fromConsole):
     embedding = openai.Embedding.create(input=text, engine='text-embedding-ada-002')['data'][0]['embedding']
     if fromConsole:
-        progress_bar(int(index/datalen*100))
         time.sleep(1)  # 每个请求之间间隔1秒，避免超过openai接口频率上限（每分钟60次）
     return embedding
 
-def embedding(df):
-    df['embeddings'] = df.apply(create_embedding, axis=1, datalen=len(df), fromConsole=True)
-    df.to_csv('processed/embeddings.csv')
-    print(f'---------------------------Embedding完毕, 写入processed/embeddings.csv文件')
+def create_embedding(row, datalen, fromConsole, model):
+    index, text = row.name, row['text']
+    if model == 'text-embedding-ada-002':
+        ret = openai_embedding(text, fromConsole)
+    else:
+        ret = common_embedding(text, model)
+    if fromConsole:
+        progress_bar(int(index/datalen*100))
+    return ret
+
+embeddingModelLoaded = {}
+
+def common_embedding(text, model):
+    wv_model = embeddingModelLoaded.get(model)
+    if wv_model is None:
+        wv_model = load_embedding_model(model)
+        embeddingModelLoaded[model] = wv_model
+
+    
+    vectors = get_sentence_vector(wv_model, text)
+    vector_string = ", ".join(map(str, vectors.tolist()))
+    return f'[{vector_string}]'
+
+model_path = './model/'
+
+def load_embedding_model(model):
+    name_without_ext, ext = os.path.splitext(model)
+    if ext == '.bin':
+        binary = True
+    else:
+        binary = False
+    print(f"begin load embedding model {model}")
+    start_time = time.time()
+    wv_model = KeyedVectors.load_word2vec_format(model_path+model, binary=binary)
+    end_time = time.time()
+    run_time = end_time - start_time
+    print("end load embedding model {} {:.2f}秒".format(model, run_time))
+    return wv_model
+
+# 分词并获取文本的词向量表示
+def get_sentence_vector(wv_model, sentence):
+    words = jieba.lcut(sentence)
+    vectors = []
+    vector_size = wv_model.vector_size
+    for word in words:
+        if word.isspace():
+            continue
+        if word in wv_model:
+            vectors.append(wv_model[word])
+        else:
+            # 如果模型中没有该词的向量表示，则用随机向量代替
+            vectors.append(np.random.uniform(-0.25, 0.25, size=vector_size))
+            print(f"{word} not found in embedding model")
+    if len(vectors) == 0:
+        return None
+    else:
+        return np.mean(vectors, axis=0)
+
+def embedding(df, model):
+    name_without_ext, ext = os.path.splitext(model)
+    df['embeddings'] = df.apply(create_embedding, axis=1, datalen=len(df), fromConsole=True, model=model)
+    fname = f'processed/embeddings-{name_without_ext}.csv'
+    df.to_csv(fname)
+    print(f'---------------------------Embedding完毕, 写入{fname}文件')
 
 if __name__ == '__main__':
     Config.loadINI('./config.ini')
-    openai.api_key = Config.get("OPENAI_API_KEY")
+    model = Config.get("Embedding_Model")
+    if model == 'text-embedding-ada-002':
+        openai.api_key = Config.get("OPENAI_API_KEY")
     df = token()
     if input("下一步进行Embedding.是否继续？(y/n)") != 'y':
         sys.exit()
-    embedding(df)
+    embedding(df, model)

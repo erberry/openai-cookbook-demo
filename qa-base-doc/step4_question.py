@@ -4,15 +4,7 @@ import openai
 import numpy as np
 from openai.embeddings_utils import distances_from_embeddings
 from config import Config
-
-################################################################################
-### Step 7
-################################################################################
-
-def loadEmbedding():
-    df=pd.read_csv('processed/embeddings.csv', index_col=0)
-    df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
-    return df
+from step3_token_embedding import common_embedding
 
 
 ################################################################################
@@ -26,11 +18,17 @@ def create_context(
     从数据中找到最相似的上下文，为一个问题创建一个背景
     """
 
-    # 获取该问题的 embeddings 
-    q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
+    model = Config.get("Embedding_Model")
+    if model == 'text-embedding-ada-002':
+        # 获取该问题的 embeddings 
+        q_embeddings = openai.Embedding.create(input=question, engine='text-embedding-ada-002')['data'][0]['embedding']
 
-    # 从这些embeddings中获取距离 
-    df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')
+        # 从这些embeddings中获取距离 
+        df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')
+    else:
+        q_embeddings_str = common_embedding(question, model)
+        q_embeddings = np.array(eval(q_embeddings_str))
+        df['distances'] = distances_from_embeddings(q_embeddings, df['embeddings'].values, distance_metric='cosine')
 
 
     returns = []
@@ -71,6 +69,7 @@ def answer_question(
         max_len=max_len,
         size=size,
     )
+
     # 如果是调试模式，打印原始的模型响应
     if debug:
         print("Context:\n" + context)
@@ -114,11 +113,11 @@ def answer_question(
 if __name__ == '__main__':
     Config.loadINI('./config.ini')
     openai.api_key = Config.get("OPENAI_API_KEY")
-    df = loadEmbedding()
+    df = Config.getEmbedding()
     while True:
         q = input("请输入你的问题（直接回车退出）：")
         if q == '':
             break  # 如果输入为空，则退出循环
         print(f'Question: {q}')
-        a = answer_question(df, question=q, debug=False)
+        a = answer_question(df, question=q, debug=True)
         print(f'Answer: {a}')

@@ -2,7 +2,6 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtWidgets import QLabel, QProgressBar, QPushButton, QHBoxLayout, QVBoxLayout, QTextEdit, QGroupBox, QMessageBox
 from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
-from step4_question import loadEmbedding
 from step3_token_embedding import create_embedding, token
 from step2_to_csv import toCsv
 from step1_to_text import parse_folder
@@ -11,6 +10,7 @@ import openai
 from config import Config
 import shutil
 import time
+import os
 
 
 class BuildWidget(QGroupBox):
@@ -151,14 +151,14 @@ class BuildWidget(QGroupBox):
         self.embeddingTask.start()
         return True
 
-    def endEmbedding(self, msg):
+    def endEmbedding(self, msg, fname):
         if msg != 'ok':
             self.textedit.setTextColor(QColor("red"))
             self.textedit.setText(f'Embedding失败：{msg}')  
         else:
             self.textedit.setTextColor(QColor("green"))
-            self.textedit.setText("Embedding完毕, 写入processed/embeddings.csv文件")
-            Config.embedding = loadEmbedding()
+            self.textedit.setText(f"Embedding完毕, 写入{fname}文件")
+            Config.loadEmbedding()
 
     def progressbarUpdate(self, index):
         self.progressbar.setValue(index)
@@ -234,7 +234,7 @@ class ToTokenThread(QThread):
 
 class ToEmbeddingThread(QThread):
     progressUpdated = pyqtSignal(int)
-    finished = pyqtSignal(str)
+    finished = pyqtSignal(str, str)
 
     def __init__(self, df, parent=None):
         super().__init__(parent)
@@ -249,13 +249,16 @@ class ToEmbeddingThread(QThread):
     def run(self):
         openai.api_key = Config.get("openai_api_key")
         sleep_seconds = Config.get("Embedding_SLEEP_SECOND")
+        model = Config.get("Embedding_Model")
+
+        name_without_ext, ext = os.path.splitext(model)
         embs = []
         msg = 'ok'
         try:
             for index, row in self.df.iterrows():
                 if self.stop:
                     break
-                emb = create_embedding(row, datalen=len(self.df), fromConsole=False)
+                emb = create_embedding(row, len(self.df), False, model)
                 embs.append(emb)
                 time.sleep(float(sleep_seconds))
                 # 更新进度条
@@ -263,12 +266,13 @@ class ToEmbeddingThread(QThread):
 
             valid = self.df.head(len(embs))
             valid['embeddings'] = embs
-            valid.to_csv('processed/embeddings.csv')
+            fname = f'processed/embeddings-{name_without_ext}.csv'
+            valid.to_csv(fname)
         except Exception as e:
             print("发生了未知异常，错误信息为:", e)
             msg = f"发生了未知异常，错误信息为:{e}"
-        self.finished.emit(msg)
-        print(f'---------------------------Embedding完毕{len(embs)}条, 写入processed/embeddings.csv文件')
+        self.finished.emit(msg, fname)
+        print(f'---------------------------Embedding完毕{len(embs)}条, 写入{fname}文件')
 
 class ClearThread(QThread):
     finished = pyqtSignal(str)
