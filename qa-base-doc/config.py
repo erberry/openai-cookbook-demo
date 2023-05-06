@@ -1,5 +1,7 @@
 import configparser
-import step4_question 
+import pandas as pd
+import numpy as np
+import os
 
 class Config:
     config = configparser.ConfigParser()
@@ -28,11 +30,19 @@ class Config:
     def getEmbedding(cls):
         if cls.embedding is None:
             try:
-                cls.embedding = step4_question.loadEmbedding()
+                cls.loadEmbedding()
             except Exception as e:
                 print("发生了未知异常，错误信息为:", e)
                 return None
         return cls.embedding
+    
+    @classmethod
+    def loadEmbedding(cls):
+        model = cls.get("Embedding_Model")
+        name_without_ext, ext = os.path.splitext(model)
+        df=pd.read_csv(f'processed/embeddings-{name_without_ext}.csv', index_col=0)
+        df['embeddings'] = df['embeddings'].apply(eval).apply(np.array)
+        cls.embedding = df
     
     @classmethod
     def clearEmbedding(cls):
